@@ -1,0 +1,13 @@
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\bin\Debug\time_tracker_forms.exe.config
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\bin\Debug\time_tracker_forms.exe
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\bin\Debug\time_tracker_forms.pdb
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.csprojAssemblyReference.cache
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.Form1.resources
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.Properties.Resources.resources
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.csproj.GenerateResource.cache
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.csproj.CoreCompileInputs.cache
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.exe
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.pdb
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.quickInsert.resources
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.aliasManager.resources
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.export.resources
