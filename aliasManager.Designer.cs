@@ -50,7 +50,7 @@
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.dataGridView1);
             this.Name = "aliasManager";
-            this.Text = "aliasManager";
+            this.Text = "Alias Manager";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.aliasManager_FormClosed);
             this.Load += new System.EventHandler(this.aliasManager_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();

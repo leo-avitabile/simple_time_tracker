@@ -51,7 +51,7 @@
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.dataGridView1);
             this.Name = "quickInsert";
-            this.Text = "quickInsert";
+            this.Text = "Quick Insert";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.quickInsert_FormClosed);
             this.Load += new System.EventHandler(this.quickInsert_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
