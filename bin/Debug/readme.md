@@ -1,4 +1,5 @@
 # Simple Time Tracker
+This program is a very simple and lightweight time tracker written in C#. Inspiration for interaction with the program came from the clipboard manager [Ditto](https://ditto-cp.sourceforge.io/). 
 ## How to use
 ### Recording Time
 1. Open the exe
@@ -28,7 +29,7 @@ Aliases are applied when exporting and hence are only shown in the Export view.
 3. To delete an alias, left click the row selector button to the left of the 'Key' column and press the Delete key (not Backspace)
    
 ### Export
-Once you have recorded sufficient work for a given time period (e.g. Day or Week) the program can generate a worked time report for you. This report gives a daily breakdown of the time booked to each code???. If you have more than one entry for a given code in a day, the Export view give will sum this for each day, not each recorded chunk of time. There are buttons for todays work and this weeks work (assuming Monday is the start of a given work week). These buttons modify the dates in the 'From' and 'To' date pickers. Arbitrary date ranges can be selected from these date pickers. The report is updated whenever a date is changed.
+Once you have recorded sufficient work for a given time period (e.g. Day or Week) the program can generate a worked time report for you. This report gives a daily breakdown of the time booked to each code. If you have more than one entry for a given code in a day, the Export view give will sum this for each day, not each recorded chunk of time. There are buttons for todays work and this weeks work (assuming Monday is the start of a given work week). These buttons modify the dates in the 'From' and 'To' date pickers. Arbitrary date ranges can be selected from these date pickers. The report is updated whenever a date is changed.
 The 'Copy' button copies the report for further analysis in your favourite external tool.
 1. Press Tools->Export
 2. Click Today, Week or change the 'From' and 'To' dates to generate a report

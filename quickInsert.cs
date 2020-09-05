@@ -30,8 +30,12 @@ namespace time_tracker_forms
         {
             dataGridView1.Columns.Add("key", "Key");
             dataGridView1.Columns[0].ReadOnly = true;
+            dataGridView1.Columns[0].Width = 35;
+            dataGridView1.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+
             dataGridView1.Columns.Add("val", "Value");
-            foreach(KeyValuePair<string, string> valuePair in mainForm.quickInserts)
+            dataGridView1.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            foreach (KeyValuePair<string, string> valuePair in mainForm.quickInserts)
                 dataGridView1.Rows.Add(valuePair.Key, valuePair.Value);
         }
 

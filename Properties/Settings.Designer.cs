@@ -25,13 +25,97 @@ namespace time_tracker_forms.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string Setting {
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool PauseWhenLocked {
             get {
-                return ((string)(this["Setting"]));
+                return ((bool)(this["PauseWhenLocked"]));
             }
             set {
-                this["Setting"] = value;
+                this["PauseWhenLocked"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("out.xml")]
+        public string WorkRecordPath {
+            get {
+                return ((string)(this["WorkRecordPath"]));
+            }
+            set {
+                this["WorkRecordPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("quickInserts.xml")]
+        public string QuickInsertPath {
+            get {
+                return ((string)(this["QuickInsertPath"]));
+            }
+            set {
+                this["QuickInsertPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("aliases.xml")]
+        public string AliasPath {
+            get {
+                return ((string)(this["AliasPath"]));
+            }
+            set {
+                this["AliasPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool MinimiseAfterEnter {
+            get {
+                return ((bool)(this["MinimiseAfterEnter"]));
+            }
+            set {
+                this["MinimiseAfterEnter"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool NoExportGrouping {
+            get {
+                return ((bool)(this["NoExportGrouping"]));
+            }
+            set {
+                this["NoExportGrouping"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool WorkNameExportGrouping {
+            get {
+                return ((bool)(this["WorkNameExportGrouping"]));
+            }
+            set {
+                this["WorkNameExportGrouping"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AliasExportGrouping {
+            get {
+                return ((bool)(this["AliasExportGrouping"]));
+            }
+            set {
+                this["AliasExportGrouping"] = value;
             }
         }
     }

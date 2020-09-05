@@ -11,3 +11,6 @@ C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_t
 C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.aliasManager.resources
 C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.export.resources
 C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.mainForm.resources
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.options.resources
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.aboutForm.resources
+C:\Users\Leo\source\repos\time_tracker_forms\time_tracker_forms\obj\Debug\time_tracker_forms.editForm.resources

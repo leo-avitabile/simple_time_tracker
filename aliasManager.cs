@@ -37,6 +37,11 @@ namespace time_tracker_forms
             var source = new BindingSource();
             source.DataSource = pairs;
             dataGridView1.DataSource = source;
+
+
+            // name the columns to be consistent with the docs
+            dataGridView1.Columns[0].HeaderText = "Work Name";
+            dataGridView1.Columns[1].HeaderText = "Alias";
         }
 
         private void saveAliases()

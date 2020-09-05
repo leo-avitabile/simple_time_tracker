@@ -2,31 +2,23 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Diagnostics.Tracing;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using System.Xml.Serialization;
+using time_tracker_forms.Properties;
 
 namespace time_tracker_forms
 {
     public partial class mainForm : Form
     {
-        // Todo: Daily Exporter
-
-        const string XML_FILE_NAME = "fastKeyBinds.xml";
-        const string XML_ALIAS_FILE_NAME = "aliases.xml";
-
-
-        const string MenuStripText = "Type and activity...";
         const int tickRateSeconds = 1;
         const int minutesBeforeBreak = 50;
         readonly TimeSpan OneSecond = new TimeSpan(0, 0, 1);
 
-        workedTimeRecord currentRecord;
+        public static workedTimeRecord currentRecord;
 
         HashSet<string> workItems = new HashSet<string>();
 
@@ -39,15 +31,79 @@ namespace time_tracker_forms
 
         public static Dictionary<string, string> aliases;
 
+        string statusText = "Waiting...";
+
+        private bool isLockedByUser = false;
+
+        private static aliasManager aliasManager = null;
+        private static quickInsert quickInsert = null;
+        private static export export = null;
+        private static options options = null;
+        private static aboutForm aboutForm = null;
+
+        // Fixed: Multiple sub-windows can no longer be opened
+        #region Single instance of forms management
+        private static void GetAliasManagerInstance()
+        {
+            // https://stackoverflow.com/questions/3087841/how-can-i-make-a-single-instance-form-not-application
+            if (aliasManager == null)
+            {
+                aliasManager = new aliasManager();
+                aliasManager.FormClosed += delegate { aliasManager = null; };
+            }
+            aliasManager.Show();
+        }
+
+        private static void GetQuickInsertInstance()
+        {
+            if (quickInsert == null)
+            {
+                quickInsert = new quickInsert();
+                quickInsert.FormClosed += delegate { quickInsert = null; };
+            }
+            quickInsert.Show();
+        }
+
+        private static void GetExportInstance()
+        {
+            if (export == null)
+            {
+                export = new export();
+                export.FormClosed += delegate { export = null; };
+            }
+            export.Show();
+        }
+
+        private static void GetOptionsInstance()
+        {
+            if (options == null)
+            {
+                options = new options();
+                options.FormClosed += delegate { options = null; };
+            }
+            options.Show();
+        }
+
+        private static void GetAboutInstance()
+        {
+            if (aboutForm == null)
+            {
+                aboutForm = new aboutForm();
+                aboutForm.FormClosed += delegate { aboutForm = null; };
+            }
+            aboutForm.Show();
+        }
+        #endregion
+
         public mainForm()
         {
             InitializeComponent();
             timer1.Interval = tickRateSeconds * 1000;
 
-            if (File.Exists("out.xml"))
+            if (File.Exists(Settings.Default.WorkRecordPath))
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(workedTimeRecordList));
-                StreamReader reader = new StreamReader("out.xml");
+                StreamReader reader = new StreamReader(Settings.Default.WorkRecordPath);
                 workedTimeRecordList recordList = (workedTimeRecordList)serializer.Deserialize(reader);
 
                 foreach (workedTimeRecord rec in recordList.records)
@@ -67,7 +123,6 @@ namespace time_tracker_forms
             hook.KeyPressed += new EventHandler<KeyboardHook.KeyPressedEventArgs>(hook_KeyPressed);
 
             // capture if the user locks thier pc
-            // clearly they aren't doing any work
             SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;
 
             updateAutocomplete();
@@ -90,19 +145,14 @@ namespace time_tracker_forms
 
         private Dictionary<string, string> loadQuickInsertData()
         {
-
-            //XElement xElem2 = XElement.Load(XML_FILE_NAME);
-            //var newDict = xElem2.Descendants("item")
-            //                    .ToDictionary(x => (string)x.Attribute("id"), x => (string)x.Attribute("value"));
-
             List<string> validKeys = new List<string> {
                 "1", "2", "3", "4", "5", "6", "7", "8", "9" 
             };
 
             Dictionary<string, string> newDict = new Dictionary<string, string>();
 
-            if (File.Exists(XML_FILE_NAME))
-                newDict = loadDictFromXML(XML_FILE_NAME, "item");
+            if (File.Exists(Settings.Default.QuickInsertPath))
+                newDict = loadDictFromXML(Settings.Default.QuickInsertPath, "item");
 
             // remove entries that are not [1,9]
             var dictKeys = newDict.Keys.ToList();
@@ -123,8 +173,8 @@ namespace time_tracker_forms
         {
             Dictionary<string, string> newDict = new Dictionary<string, string>();
 
-            if (File.Exists(XML_ALIAS_FILE_NAME))
-                newDict = loadDictFromXML(XML_ALIAS_FILE_NAME, "alias");
+            if (File.Exists(Settings.Default.AliasPath))
+                newDict = loadDictFromXML(Settings.Default.AliasPath, "alias");
 
             return newDict;
         }
@@ -172,17 +222,13 @@ namespace time_tracker_forms
 
         private void SystemEvents_SessionSwitch(object sender, SessionSwitchEventArgs e)
         {
-            if (lockStopsTimerToolStripMenuItem.Checked)
+            if (Settings.Default.PauseWhenLocked)
             {
-                // Todo: Handle lock and unlock
                 if (e.Reason == SessionSwitchReason.SessionLock)
-                {
                     timer1.Enabled = false;
-                }
                 else if (e.Reason == SessionSwitchReason.SessionUnlock)
-                {
-                    if (currentRecord != null) { timer1.Enabled = true; }
-                }
+                    if (currentRecord != null && !isLockedByUser) 
+                        timer1.Enabled = true;
             }
         }
 
@@ -207,25 +253,11 @@ namespace time_tracker_forms
             Application.Exit();
         }
 
-        private void toolStripTextBox1_Enter(object sender, EventArgs e)
-        {
-            (sender as ToolStripTextBox).ForeColor = Color.Black;
-            (sender as ToolStripTextBox).Text = "";
-        }
-
-        private void toolStripTextBox1_Leave(object sender, EventArgs e)
-        {
-        }
-
-        private void toolStripTextBox1_Click(object sender, EventArgs e)
-        {
-            (sender as ToolStripTextBox).ForeColor = Color.Black;
-            (sender as ToolStripTextBox).Text = "";
-        }
-
-        private void beginTimeRecord(string workName, bool hide=true, bool showBallon=true)
+        // Todo: This feels like it could be split up better
+        private void beginTimeRecord(string workName, bool showBallon=true)
         {
             // represents if what was typed into the text box is different to what we are already recording
+            // default to true since there might not be any current work to check against, in which case it will be new work
             bool newWork = true;
 
             // if something has been worked on and is new then add to record
@@ -249,20 +281,24 @@ namespace time_tracker_forms
             {
                 //create new record
                 currentRecord = new workedTimeRecord(workName, new TimeSpan(), DateTime.Now);
-
-                // update controls
-                string statusText = "Logging time to: " + workName;
-                notifyIcon1.BalloonTipText = statusText;
-                toolStripStatusLabel.Text = statusText;
-                notifyIcon1.Text = statusText;
-                if (showBallon)
-                    notifyIcon1.ShowBalloonTip(1000);
+                updateControlsToDisplayNewWork(workName, showBallon);
             }
 
             // clean up controls and form
             textBox1.Text = "";
-            this.Visible = !hide;
+            this.Visible = !Settings.Default.MinimiseAfterEnter;
             timer1.Start();
+        }
+
+        private void updateControlsToDisplayNewWork(string workName, bool showBalloon)
+        {
+            // update controls
+            statusText = "Logging time to: " + workName;
+            notifyIcon1.BalloonTipText = statusText;
+            toolStripStatusLabel.Text = statusText;
+            notifyIcon1.Text = statusText;
+            if (showBalloon)
+                notifyIcon1.ShowBalloonTip(1000);
         }
 
         private void updateAutocomplete()
@@ -270,7 +306,7 @@ namespace time_tracker_forms
             AutoCompleteStringCollection stringCollection = new AutoCompleteStringCollection();
             stringCollection.AddRange(workItems.ToArray());
             textBox1.AutoCompleteCustomSource = stringCollection;
-            textBox1.AutoCompleteMode = AutoCompleteMode.Append;
+            textBox1.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             textBox1.AutoCompleteSource = AutoCompleteSource.CustomSource;
         }
 
@@ -285,7 +321,7 @@ namespace time_tracker_forms
                 notifyIcon1.ShowBalloonTip(1000);
             }
 
-            label1.Text = currentRecord.workedHours.ToString();
+            lblTimeDisplay.Text = currentRecord.workedHours.ToString();
         }
 
         private void exitToolStripMenuItem1_Click(object sender, EventArgs e)
@@ -295,7 +331,9 @@ namespace time_tracker_forms
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Modifiers == Keys.Control)
+            bool ControlPressed = (e.Modifiers & Keys.Control) == Keys.Control;
+            bool APressed = e.KeyCode == Keys.A;
+            if (ControlPressed)
             {
                 //Todo: Can this be moved somewhere else?
                 updateQuickFillSuggestions();
@@ -333,6 +371,7 @@ namespace time_tracker_forms
                                 quickInserts[keyVal] = textBox1.Text;
                                 // Todo: Save quick fill
                                 updateQuickFillSuggestions();
+                                statusUpdateTimer.Enabled = true;
                             }
                             // otherwise begin logging
                             else
@@ -345,7 +384,7 @@ namespace time_tracker_forms
             }
 
             // handle typing
-            if (e.KeyCode >= Keys.A && e.KeyCode <= Keys.Z)
+            if (e.KeyCode >= Keys.A && e.KeyCode <= Keys.Z && !ControlPressed)
             {
                 if (!textBox1.Focused)
                 {
@@ -354,7 +393,8 @@ namespace time_tracker_forms
                     // type char that was pressed
                     System.Windows.Forms.KeyEventArgs args = e as System.Windows.Forms.KeyEventArgs;
                     string typedChar = args.KeyCode.ToString();
-                    if (!args.Shift) { typedChar = typedChar.ToLower(); }
+                    if (!args.Shift) 
+                        typedChar = typedChar.ToLower();
                     textBox1.Text += typedChar;
 
                     // put cursor at end ready for more typing
@@ -362,7 +402,8 @@ namespace time_tracker_forms
                     textBox1.SelectionLength = 0;
                 }
             }
-            else if (e.KeyCode == Keys.Escape) {
+            
+            if (e.KeyCode == Keys.Escape) {
                 this.Visible = false;
             }
 
@@ -374,7 +415,8 @@ namespace time_tracker_forms
             {
                 // add to record
                 string typedText = textBox1.Text;
-                if (e.Modifiers == Keys.Shift) { typedText = typedText.ToUpper(); }
+                if (e.Modifiers == Keys.Shift) 
+                    typedText = typedText.ToUpper();
 
                 beginTimeRecord(typedText);
             }
@@ -383,29 +425,22 @@ namespace time_tracker_forms
         private void resumeWorkToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (currentRecord != null)
-                if (currentRecord.workedHours >= OneSecond)
-                    timer1.Enabled = true;
-
-            label1.ForeColor = Color.Black;
+            { 
+                isLockedByUser = false;
+                timer1.Enabled = true;
+                lblTimeDisplay.ForeColor = Color.Black;
+              }
         }
 
         private void pauseWorkToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (timer1.Enabled)
-                label1.ForeColor = Color.Red;
+            {
+                lblTimeDisplay.ForeColor = Color.Red;
+                isLockedByUser = true;
+            }
 
             timer1.Enabled = false;
-        }
-
-        private void lockStopsTimerToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            ToolStripMenuItem sndr = sender as ToolStripMenuItem;
-            sndr.Checked = !sndr.Checked;
-        }
-
-        private void stopWorkToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void iconMenuStrip_Opening(object sender, CancelEventArgs e)
@@ -429,14 +464,13 @@ namespace time_tracker_forms
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
             // add a dummy entry - this will cause the current one to be saved
-            beginTimeRecord("", false, false);
+            beginTimeRecord("", false);
 
             // save time data
             XmlSerializer serializer = new XmlSerializer(typeof(workedTimeRecordList));
             workedTimeRecordList records = new workedTimeRecordList();
             records.records = record.ToArray();
-            // Todo: Make this an option
-            FileStream fs = new FileStream("out.xml", FileMode.Create);
+            FileStream fs = new FileStream(Settings.Default.WorkRecordPath, FileMode.Create);
             serializer.Serialize(fs, records);
             fs.Close();
 
@@ -445,14 +479,16 @@ namespace time_tracker_forms
                     "items",
                     quickInserts.Select(x => new XElement("item", new XAttribute("id", x.Key), new XAttribute("value", x.Value)))
                  );
-            xElem.Save(XML_FILE_NAME);
+            xElem.Save(Settings.Default.QuickInsertPath);
 
             // save aliases
             XElement xElem2 = new XElement(
                     "aliases",
                     aliases.Select(x => new XElement("alias", new XAttribute("id", x.Key), new XAttribute("value", x.Value)))
                  );
-            xElem2.Save(XML_ALIAS_FILE_NAME);
+            xElem2.Save(Settings.Default.AliasPath);
+
+            Properties.Settings.Default.Save();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -461,8 +497,7 @@ namespace time_tracker_forms
 
         private void quickInsertToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            quickInsert q = new quickInsert();
-            q.Show();
+            GetQuickInsertInstance();
         }
 
         private void Form1_KeyUp(object sender, KeyEventArgs e)
@@ -475,58 +510,58 @@ namespace time_tracker_forms
 
         private void exportToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            export export = new export();
-            export.Show();
+            GetExportInstance();
         }
 
         private void aliasManagerToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            aliasManager aliasManager = new aliasManager();
-            aliasManager.Show();
+            GetAliasManagerInstance();
         }
 
-        private void weekToolStripMenuItem_Click(object sender, EventArgs e)
+        private void statusUpdateTimer_Tick(object sender, EventArgs e)
         {
-            DateTime dt = DateTime.Now;
-            // see 
-            // https://stackoverflow.com/questions/38039/how-can-i-get-the-datetime-for-the-start-of-the-week
-            DayOfWeek startOfWeek = DayOfWeek.Monday;
-            int diff = (7 + (dt.DayOfWeek - startOfWeek)) % 7;
-            DateTime weekStartDate = dt.AddDays(-1 * diff).Date;
-            var x = exportWorkedTime(weekStartDate, dt);
+            toolStripStatusLabel.Text = statusText;
+            statusUpdateTimer.Enabled = false;
         }
 
-        private Dictionary<DateTime, workedTimeRecord[]> exportWorkedTime(DateTime date)
+        private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            return exportWorkedTime(date, date);
+            GetOptionsInstance();
         }
 
-        private Dictionary<DateTime, workedTimeRecord[]> exportWorkedTime(DateTime fromDate, DateTime toDate)
+        private void editToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
         {
-            Dictionary<DateTime, workedTimeRecord[]> valuePairs = new Dictionary<DateTime, workedTimeRecord[]>();
+            currentWorkToolStripMenuItem.Enabled = (currentRecord != null);
+        }
 
-            double totalDays = (toDate.Date - fromDate.Date).TotalDays + 1;
-            for (int i = 0; i < totalDays; i++)
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            GetAboutInstance();
+        }
+
+        private void currentWorkToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // create form, show modally and capture 
+            editForm editForm = new editForm();
+            editForm.ShowDialog();
+
+            if (editForm.DialogResult == DialogResult.OK)
             {
-                // get the start and end days to gather the data over
-                DateTime startDay;
-                DateTime endDay;
-                if (i < totalDays - 1)
-                {
-                    startDay = fromDate.AddDays(i).Date;
-                    endDay = fromDate.AddDays(i + 1).Date;
-                }
-                else
-                {
-                    startDay = fromDate.Date;
-                    endDay = fromDate.AddDays(1).Date;
-                }
-
-                // select the records from the array
-                var work = record.Where(x => x.workStarted >= startDay && x.workStarted <= endDay);
-                valuePairs.Add(startDay, work.ToArray());
+                currentRecord.workName = editForm.newWorkName;
+                currentRecord.workedHours = editForm.newWorkedTimespan;
+                lblTimeDisplay.Text = currentRecord.workedHours.ToString();
+                updateControlsToDisplayNewWork(currentRecord.workName, false);
             }
-            return valuePairs;
+
+
+            editForm.Close();
+
+        }
+
+        private void toolsToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
+        {
+            resumeWorkToolStripMenuItem.Enabled = isLockedByUser;
+            pauseWorkToolStripMenuItem.Enabled = (currentRecord != null) && !isLockedByUser;
         }
     }
 
